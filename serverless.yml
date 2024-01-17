@@ -1,0 +1,75 @@
+service: sam-image-poc2
+
+frameworkVersion: '3'
+
+custom:
+  tableName: 'UserFile3'
+  bucketName: 'lambdasam-2-42c0f00a90-ap-south-1'
+
+provider:
+  name: aws
+  runtime: java17
+  profile: serverless-admin
+  region: ap-south-1
+  iam:
+    role:
+      statements:
+        - Effect: "Allow"
+          Action: 's3:*'
+          Resource: '*'
+            #- Fn::GetAtt: [ MyBucket, Arn ]
+        - Effect: "Allow"
+          Action: 'dynamodb:*'
+          Resource:
+            - Fn::GetAtt: [ UsersFileTable, Arn ]
+
+package:
+  artifact: target/imageApp-dev.jar
+
+functions:
+  s3uploadTrigger:
+    handler: com.serverless.handler.S3UploadTriggerHandler
+    events:
+      - s3:
+          bucket: ${self:custom.bucketName}
+          event: s3:ObjectCreated:*
+          rules:
+            - suffix: .mp4
+      - s3:
+          bucket: ${self:custom.bucketName}
+          event: s3:ObjectCreated:*
+          rules:
+            - suffix: .png
+  getImage:
+    handler: com.serverless.handler.FetchImageHandler
+    events:
+      - http:
+          path: /getImages
+          method: post
+          cors: true
+  postImage:
+    handler: com.serverless.handler.UploadImageHandler
+    events:
+      - http:
+          path: /postImages
+          method: post
+          cors: true
+
+
+resources:
+  Resources:
+    UsersFileTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+        TableName: ${self:custom.tableName}
+#    MyBucket:
+#      Type: AWS::S3::Bucket
+#      Properties:
+#        BucketName: ${self:custom.bucketName}
