@@ -3,13 +3,13 @@ service: sam-image-poc2
 frameworkVersion: '3'
 
 custom:
-  tableName: 'UserFile3'
-  bucketName: 'lambdasam-2-42c0f00a90-ap-south-1'
+  tableName: ''
+  bucketName: ''
 
 provider:
   name: aws
   runtime: java17
-  profile: serverless-admin
+  profile: admin
   region: ap-south-1
   iam:
     role:
