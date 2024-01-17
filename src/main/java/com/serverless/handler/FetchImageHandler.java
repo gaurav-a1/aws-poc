@@ -42,20 +42,28 @@ public class FetchImageHandler  implements RequestHandler<Map<String, Object>, A
         if(records == null) {
 
             return ApiGatewayResponse.builder()
-                    .setStatusCode(200)
+                    .setStatusCode(500)
                     .setObjectBody(FetchImageResponse.builder().message("failure, no record").build())
                     .setHeaders(Collections.singletonMap("Access-Control-Allow-Origin", "*"))
                     .build();
         } else {
-            return ApiGatewayResponse.builder()
-                    .setStatusCode(500)
-                    .setObjectBody(FetchImageResponse.builder().message("success").files(getFile(records, logger)).build())
-                    .setHeaders(Collections.singletonMap("Access-Control-Allow-Origin", "*"))
-                    .build();
+            try {
+                return ApiGatewayResponse.builder()
+                        .setStatusCode(200)
+                        .setObjectBody(FetchImageResponse.builder().message("success").files(getFile(records, logger)).build())
+                        .setHeaders(Collections.singletonMap("Access-Control-Allow-Origin", "*"))
+                        .build();
+            } catch (Exception e) {
+                return ApiGatewayResponse.builder()
+                        .setStatusCode(500)
+                        .setObjectBody(FetchImageResponse.builder().message("failure :: " +e.getMessage()).build())
+                        .setHeaders(Collections.singletonMap("Access-Control-Allow-Origin", "*"))
+                        .build();
+            }
         }
     }
 
-    private List<byte[]> getFile(List<Map<String, AttributeValue>> records, LambdaLogger logger) {
+    private List<byte[]> getFile(List<Map<String, AttributeValue>> records, LambdaLogger logger) throws Exception {
         List<String> filePath = new ArrayList<>();
         records.stream()
                 .map(r -> {
